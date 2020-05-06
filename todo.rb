@@ -6,14 +6,11 @@ require "tilt/erubis"
 configure do
   enable :sessions
   set :session_secret, 'secret'
-end
-
-configure do
   set :erb, :escape_html => true
 end
 
 before do
-  session[:lists] ||= []
+  @storage = SessionPersistance.new(session)
 end
 
 helpers do
@@ -52,8 +49,41 @@ helpers do
   end
 end
 
+# Encapsulates all the interaction with session
+class SessionPersistance
+  def initialize(session)
+    @session = session
+    @session[:lists] ||= []
+  end
+
+  def find_list(id)
+    @session[:lists].find{ |list| list[:id] == id }
+  end
+
+  def all_lists
+    @session[:lists]
+  end
+
+  def create_new_list(list_name)
+    list_id = next_list_id(@session[:lists])
+    @session[:lists] << { id: list_id, name: list_name, todos: [] }
+  end
+
+  private
+
+  # assign list_id to new todo list
+  def next_list_id(lists)
+    max_existing_list_id = lists.map {|list| list[:id] }.max || 0
+    max_existing_list_id + 1
+  end
+
+  def delete_list(id)
+    @session[:lists].reject! {|list| list[:id] == id }
+  end
+end
+
 def load_list(id)
-  list = session[:lists].find{ |list| list[:id] == id }
+  list = @storage.find_list(id)
     return list if list
 
     session[:error] = "The specified list was not found."
@@ -65,7 +95,7 @@ end
 def error_for_list_name(name)
   if !(1..100).cover?(name.size)
     "List name must be between 1 and 100 characters."
-  elsif session[:lists].any? { |list| list[:name].downcase == name.downcase }
+  elsif @storage.all_lists.any? { |list| list[:name].downcase == name.downcase }
     "List name must be unqiue."
   end
 end
@@ -80,11 +110,6 @@ def error_for_todo_name(name, list)
   end
 end
 
-# assign list_id to new todo list
-def next_list_id(lists)
-  max_existing_list_id = lists.map {|list| list[:id] }.max || 0
-  max_existing_list_id + 1
-end
 
 # assign todo_id to new todo item
 def next_todo_id(todos)
@@ -98,7 +123,7 @@ end
 
 # View all the lists (list of lists)
 get "/lists" do
-  @lists = session[:lists]
+  @lists = @storage.all_lists
   erb :lists, layout: :layout
 end
 
@@ -116,8 +141,8 @@ post "/lists" do
     session[:error] = error
     erb :new_list, layout: :layout
   else
-    list_id = next_list_id(session[:lists])
-    session[:lists] << { id: list_id, name: list_name, todos: [] }
+   
+    @storge.create_new_list(list_name)
     session[:success] = "The list has been created."
     redirect "/lists"
   end
@@ -158,7 +183,8 @@ end
 # Delete a todo list
 post "/lists/:id/delete" do
   id = params[:id].to_i
-  session[:lists].reject! {|list| list[:id] == id }
+  @storage.delete_list(id)
+ 
   if env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
     "/lists"
   else

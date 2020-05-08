@@ -12,7 +12,7 @@ configure do
 end
 
 before do
-  @storage = DatabasePersistance.new
+  @storage = DatabasePersistance.new(logger)
 end
 
 helpers do

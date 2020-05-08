@@ -5,13 +5,22 @@ class DatabasePersistance
     @db = PG.connect(dbname: "todos")
   end
 
+  def query(statement, *params)
+    puts "#{statement}: #{params}"
+    @db.exec_params(statement, params)
+  end
+
   def find_list(id)
-    #@session[:lists].find{ |list| list[:id] == id }
+    sql = "SELECT * FROM lists WHERE id = $1;"
+    result = query(sql, id)
+
+    tuple = result.first
+    {id: tuple["id"], name: tuple["list_name"], todos: []}
   end
 
   def all_lists
     sql = "SELECT * FROM lists;"
-    result = @db.exec(sql)
+    result = query(sql)
     result.map do |tuple|
       {id: tuple["id"], name: tuple["list_name"], todos: []}
     end

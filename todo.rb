@@ -19,6 +19,10 @@ before do
   @storage = DatabasePersistance.new(logger)
 end
 
+after do
+  @storage.disconnect
+end
+
 helpers do
   def list_completed?(list)
     todos_total_count(list) > 0 && todos_remaining_count(list).zero?

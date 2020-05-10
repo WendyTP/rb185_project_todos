@@ -8,3 +8,7 @@ gem "rack", ">= 1.6.12"
 gem "rack-protection", ">= 1.5.5"
 gem "pg"
 
+group :production do
+  gem "puma"
+end
+

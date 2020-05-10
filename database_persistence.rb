@@ -17,7 +17,6 @@ class DatabasePersistance
     tuple = result.first
     list_id = tuple["id"].to_i
     {id: list_id, name: tuple["list_name"], todos: find_todos(list_id)}
-    # todos: [{ id: todo_id, name: todo_name, completed: false }]
   end
 
   def all_lists
@@ -32,8 +31,6 @@ class DatabasePersistance
   def create_new_list(list_name)
     sql = "INSERT INTO lists (list_name) VALUES ($1);"
     result = query(sql, list_name)
-    #list_id = next_element_id(@session[:lists])
-    #@session[:lists] << { id: list_id, name: list_name, todos: [] }
   end
 
   def delete_list(id)
@@ -41,32 +38,31 @@ class DatabasePersistance
     result_for_delete_todos = query(sql_for_delete_todos, id)
     sql_for_delete_list = "DELETE FROM lists WHERE id = $1;"
     result_for_delete_list = query(sql_for_delete_list, id)
-    #@session[:lists].reject! {|list| list[:id] == id }
   end
 
   def update_list_name(id, new_name)
     sql = "UPDATE lists SET list_name = $1 WHERE id = $2"
     result = query(sql, new_name, id)
-    #list = find_list(id)
-    #list[:name] = new_name
   end
 
-  def create_new_todo(list, todo_name)
-    #todo_id = next_element_id(list[:todos])
-    #list[:todos] << { id: todo_id, name: todo_name, completed: false }
+  def create_new_todo(list_id, todo_name)
+    sql = "INSERT INTO todos (todo_name, list_id) VALUES ($1, $2);"
+    result = query(sql, todo_name, list_id)
   end
 
-  def delete_todo_from_list(list, todo_id)
-    #list[:todos].reject! {|todo| todo[:id] == todo_id}
+  def delete_todo_from_list(list_id, todo_id)
+    sql = "DELETE FROM todos WHERE id = $1 AND list_id = $2"
+    result = query(sql, todo_id, list_id)
   end
 
-  def update_todo_status(list, todo_id, new_status)
-    #todo = list[:todos].find { |t| t[:id] == todo_id}
-    #todo[:completed] = new_status
+  def update_todo_status(list_id, todo_id, new_status)
+    sql = "UPDATE todos SET completed = $1 WHERE id = $2 AND list_id = $3;"
+    result = query(sql, new_status, todo_id, list_id)
   end
 
-  def mark_all_todos_as_completed(list)
-    #list[:todos].map { |todo| todo[:completed] = true }
+  def mark_all_todos_as_completed(list_id)
+    sql = "UPDATE todos SET completed = true WHERE list_id = $1;"
+    result = query(sql, list_id)
   end
 
   private

@@ -136,7 +136,7 @@ end
 post "/lists/:id" do
   list_name = params[:list_name].strip
   id = params[:id].to_i
-  @list = load_list(id) # ------------------------------needed?
+  @list = load_list(id)
 
   error = error_for_list_name(list_name)
   if error
@@ -173,7 +173,7 @@ post "/lists/:list_id/todos" do
     session[:error] = error
     erb :list, layout: :layout
   else
-    @storage.create_new_todo(@list, text)
+    @storage.create_new_todo(@list_id, text)
     
     session[:success] = "The todo was added."
     redirect "/lists/#{@list_id}"
@@ -186,7 +186,7 @@ post "/lists/:list_id/todos/:todo_id/delete" do
   @list = load_list(@list_id)
   todo_id = params[:todo_id].to_i
 
-  @storage.delete_todo_from_list(@list, todo_id)
+  @storage.delete_todo_from_list(@list_id, todo_id)
   
   if env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
     status 204
@@ -204,7 +204,7 @@ post "/lists/:list_id/todos/:todo_id" do
   todo_id = params[:todo_id].to_i
   is_completed = params[:completed] == "true"
 
-  @storage.update_todo_status(@list, todo_id, is_completed)
+  @storage.update_todo_status(@list_id, todo_id, is_completed)
  
   session[:success] = "The todo has been updated"
   redirect "/lists/#{@list_id}"
@@ -215,7 +215,7 @@ post "/lists/:list_id/complete_all" do
   @list_id = params[:list_id].to_i
   @list = load_list(@list_id)
 
-  @storage.mark_all_todos_as_completed(@list)
+  @storage.mark_all_todos_as_completed(@list_id)
 
   session[:success] = "All todos have been completed."
   redirect "lists/#{@list_id}"

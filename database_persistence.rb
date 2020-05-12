@@ -21,11 +21,27 @@ class DatabasePersistance
   end
 
   def find_list(id)
-    sql = "SELECT * FROM lists WHERE id = $1;"
+    #sql = "SELECT * FROM lists WHERE id = $1;"
+
+    sql = <<~SQL
+      SELECT lists.*, 
+        count(todos.id) AS todos_total_count,
+        count(NULLIF(todos.completed, true))AS todos_remaining_count 
+        FROM lists 
+        LEFT JOIN todos ON (lists.id = todos.list_id)
+        WHERE lists.id = $1
+        GROUP BY  lists.id 
+        ORDER BY lists.list_name;
+    SQL
     result = query(sql, id)
     tuple = result.first
-    list_id = tuple["id"].to_i
-    { id: list_id, name: tuple["list_name"], todos: find_todos(list_id)}
+    list_id = tuple["id"].to_i  # --- needed?
+    
+    { id: list_id, 
+      name: tuple["list_name"], 
+      todos: find_todos(list_id),
+      todos_total_count: 0,
+      todos_remaining_count: 0}
   end
 
   def all_lists

@@ -23,26 +23,28 @@ after do
   @storage.disconnect
 end
 
+#todos_total_count
+
 helpers do
   def list_completed?(list)
-    todos_total_count(list) > 0 && todos_remaining_count(list).zero?
+    list[:todos_total_count] > 0 && list[:todos_remaining_count].zero?
   end
 
   def list_class(list)
     "complete" if list_completed?(list)
   end
 
-  def todos_remaining_count(list)
-    result = 0
-    list[:todos].each do |todo|
-      result += 1 if todo[:completed] == false
-    end
-    result
-  end
+  # def todos_remaining_count(list)
+  #   result = 0
+  #   list[:todos].each do |todo|
+  #     result += 1 if todo[:completed] == false
+  #   end
+  #   result
+  # end
 
-  def todos_total_count(list)
-    list[:todos].size
-  end
+  # def todos_total_count(list)
+  #   list[:todos].size
+  # end
 
   def sort_lists(lists, &block)
     complete_lists, incomplete_lists = lists.partition { |list| list_completed?(list) }

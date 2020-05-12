@@ -21,8 +21,6 @@ class DatabasePersistance
   end
 
   def find_list(id)
-    #sql = "SELECT * FROM lists WHERE id = $1;"
-
     sql = <<~SQL
       SELECT lists.*, 
         count(todos.id) AS todos_total_count,
@@ -36,7 +34,7 @@ class DatabasePersistance
     result = query(sql, id)
     tuple = result.first
     list_id = tuple["id"].to_i  # --- needed?
-    
+
     { id: list_id, 
       name: tuple["list_name"], 
       todos: find_todos(list_id),

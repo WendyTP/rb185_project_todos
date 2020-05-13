@@ -33,13 +33,7 @@ class DatabasePersistance
     SQL
     result = query(sql, id)
     tuple = result.first
-    list_id = tuple["id"].to_i  # --- needed?
-
-    { id: list_id, 
-      name: tuple["list_name"], 
-      todos: find_todos(list_id),
-      todos_total_count: 0,
-      todos_remaining_count: 0}
+    tuple_to_list(tuple)
   end
 
   def all_lists
@@ -55,11 +49,7 @@ class DatabasePersistance
     result = query(sql)
 
     result.map do |tuple|
-      { id: tuple["id"].to_i, 
-        name: tuple["list_name"], 
-        todos_total_count: tuple["todos_total_count"].to_i, 
-        todos_remaining_count: tuple["todos_remaining_count"].to_i 
-      }
+      tuple_to_list(tuple)
     end
   end
 
@@ -100,8 +90,6 @@ class DatabasePersistance
     query(sql, list_id)
   end
 
-  private
-
   def find_todos(list_id)
     sql = "SELECT * FROM todos WHERE list_id = $1;"
     result = query(sql, list_id)
@@ -110,5 +98,17 @@ class DatabasePersistance
       complete_status = (tuple["completed"] == "t") ? true : false
       { id: todo_id, name: tuple["todo_name"], completed: complete_status }
     end
+  end
+
+  private
+
+  def tuple_to_list(tuple)
+    list_id = tuple["id"].to_i  
+
+    { id: list_id, 
+      name: tuple["list_name"], 
+      todos_total_count: tuple["todos_total_count"].to_i,
+      todos_remaining_count: tuple["todos_remaining_count"].to_i 
+    }
   end
 end

@@ -23,7 +23,6 @@ after do
   @storage.disconnect
 end
 
-#todos_total_count
 
 helpers do
   def list_completed?(list)
@@ -69,10 +68,10 @@ end
 
 # Return an error message if the todoname is invalid.
 # Return nil if name is valid.
-def error_for_todo_name(name, list)
+def error_for_todo_name(name, todos)
   if !(1..100).cover?(name.size)
     "Todo must be between 1 and 100 characters."
-  elsif list[:todos].any? { |todo| todo[:name].downcase == name.downcase }
+  elsif todos.any? {|todo| todo[:name].downcase == name.downcase }
     "Todo name must be unqiue."
   end
 end
@@ -112,6 +111,7 @@ end
 get "/lists/:list_id" do
   @list_id = params[:list_id].to_i
   @list = load_list(@list_id)
+  @todos = @storage.find_todos(@list_id)
 
   erb :list, layout: :layout
 end
@@ -157,8 +157,9 @@ post "/lists/:list_id/todos" do
   text = params[:todo].strip
   @list_id = params[:list_id].to_i
   @list = load_list(@list_id)
+  @todos = @storage.find_todos(@list_id)
 
-  error = error_for_todo_name(text, @list)
+  error = error_for_todo_name(text, @todos)
   if error
     session[:error] = error
     erb :list, layout: :layout

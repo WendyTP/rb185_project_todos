@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 ruby "2.6.0"
-gem "sinatra", "~>1.4.7"
+gem "sinatra", "~>2.0.8"
 gem "erubis"
 gem "sinatra-contrib"
 gem "rack", ">= 1.6.12"
